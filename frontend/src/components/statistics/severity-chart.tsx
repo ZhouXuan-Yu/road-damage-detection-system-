@@ -13,12 +13,11 @@ interface SeverityChartProps {
 const SEVERITY_COLORS: Record<string, string> = {
   low: "#10b981",
   高: "#10b981",
-  高轻度: "#10b981",
+  轻度: "#10b981",
   medium: "#f59e0b",
   中: "#f59e0b",
   中度: "#f59e0b",
   high: "#ef4444",
-  高: "#ef4444",
   严重: "#ef4444",
 };
 

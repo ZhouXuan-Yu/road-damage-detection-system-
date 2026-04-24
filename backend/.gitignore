@@ -21,8 +21,6 @@ build/
 uploads/
 results/
 reports/
-weights/
-!weights/.gitkeep
 
 # Logs
 *.log

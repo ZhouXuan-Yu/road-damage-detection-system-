@@ -8,7 +8,7 @@ interface RepairProgressCardProps {
   repairedCount: number;
   pendingCount: number;
   data: Array<{
-    status: string;
+    severity: string;
     count: number;
     percentage: number;
   }>;
@@ -54,9 +54,9 @@ export function RepairProgressCard({ total, repairedCount, pendingCount, data }:
         {/* 分类统计 */}
         <div className="space-y-3">
           {data.map((item) => (
-            <div key={item.status} className="space-y-1">
+            <div key={item.severity} className="space-y-1">
               <div className="flex justify-between text-xs">
-                <span className="text-gray-600">{item.status}</span>
+                <span className="text-gray-600">{item.severity}</span>
                 <span className="text-gray-500">{item.count} 个</span>
               </div>
               <Progress value={item.percentage} className="h-2" />

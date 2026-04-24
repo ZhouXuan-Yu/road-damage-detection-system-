@@ -127,7 +127,7 @@ export const api = {
 
           function processBuffer(): boolean {
             // Parse complete SSE records: lines ending with blank line = one record
-            const recordMatch = buffer.match(/^data: (.+?)\n\n(.*)$/s);
+            const recordMatch = buffer.match(/^data: (.+?)\n\n([\s\S]*)$/);
             if (!recordMatch) return false;
 
             const eventData = recordMatch[1];
