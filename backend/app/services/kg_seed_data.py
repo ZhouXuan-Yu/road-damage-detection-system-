@@ -205,6 +205,23 @@ CAUSE_ENTITIES = [
         "description": "在寒冷地区，路面结构内部的水分反复冻融，导致体积膨胀收缩，加速路面破坏。",
         "properties": {"temperature_range": "-10°C ~ 5°C", "freeze_thaw_cycles": "50-100次/年", "main_affected": ["裂缝", "剥落", "松散"]}
     },
+    {
+        "name": "高温软化", "entity_type": "Cause",
+        "description": "在高温条件下，沥青混合料软化，抗剪强度降低，导致路面产生车辙、拥包等病害。",
+        "properties": {"critical_temp": ">40°C", "main_affected": ["车辙", "拥包"], "season": "夏季高温"}
+    },
+    {
+        "name": "唧浆", "entity_type": "Disease",
+        "description": "路面裂缝中唧出泥浆的现象，表明路面结构内部含水量过高，基层材料已经软化。是翻浆的早期征兆。",
+        "severity_level": "medium", "priority": 4, "cost_range": "100-300 元/m",
+        "properties": {"indicator": "泥浆从裂缝中唧出", "structural_impact": "结构弱化", "season": "雨季或解冻期"}
+    },
+    {
+        "name": "推移", "entity_type": "Disease",
+        "description": "路面在车辆水平力作用下产生的波浪状推移变形，主要发生在交叉口、弯道等区域。",
+        "severity_level": "medium", "priority": 3, "cost_range": "80-300 元/m",
+        "properties": {"location": "交叉口、弯道、长大纵坡", "pattern": "波浪状推移", "loading": "车辆水平力"}
+    },
 ]
 
 # =====================================================================
@@ -288,6 +305,24 @@ REPAIR_ENTITIES = [
         "description": "针对车辙病害，使用专用的车辙填补料或铣刨后重铺，恢复路面横坡。",
         "severity_level": "medium", "priority": 3, "cost_range": "60-200 元/m",
         "properties": {"methods": ["填补料直接填补", "铣刨重铺"], "depth_range": "5-30mm", "rutting_type": "失稳型车辙"}
+    },
+    {
+        "name": "贴缝带处理", "entity_type": "Repair",
+        "description": "使用自粘式防裂贴或贴缝带直接粘贴在裂缝表面，快速封闭裂缝。适用于宽度小于5mm的裂缝。",
+        "severity_level": "low", "priority": 1, "cost_range": "20-50 元/m",
+        "properties": {"suitable_width": "<5mm", "material": "自粘式防裂贴", "lifespan": "1-2年", "advantages": "快速、无需加热"}
+    },
+    {
+        "name": "换填处理", "entity_type": "Repair",
+        "description": "挖除损坏的路面结构和软弱路基，换填强度更高的材料。适用于严重翻浆和沉陷路段。",
+        "severity_level": "high", "priority": 4, "cost_range": "400-1000 元/m",
+        "properties": {"depth": "300-800mm", "materials": ["级配碎石", "水泥稳定碎石"], "lifespan": "10-15年"}
+    },
+    {
+        "name": "结构修补", "entity_type": "Repair",
+        "description": "针对严重坑洞或破损区域，处理基层后重铺各结构层的综合性修补方法。",
+        "severity_level": "high", "priority": 3, "cost_range": "300-800 元/m",
+        "properties": {"scope": "处理基层+重铺面层", "lifespan": "5-8年"}
     },
 ]
 
@@ -473,6 +508,22 @@ REGION_ENTITIES = [
         "name": "长大纵坡", "entity_type": "Region",
         "description": "坡度较大的长距离上坡或下坡路段，重载车辆行驶困难，对路面造成特殊损坏。",
         "properties": {"slope_range": ">3%", "length": ">500m", "common_diseases": ["车辙", "推移", "层间滑移"]}
+    },
+    {
+        "name": "路面养护", "entity_type": "Standard",
+        "description": "道路病害的预防性养护和修复性养护工作流程，是道路工程的重要环节。",
+        "properties": {"types": ["预防性养护", "中修养护", "大修养护"], "key_indicators": ["PCI", "RQI", "PQI"]}
+    },
+    {
+        "name": "路面检测", "entity_type": "Standard",
+        "description": "使用各类检测设备和仪器对路面状况进行检测评估，为养护决策提供依据。",
+        "properties": {"methods": ["FWD弯沉", "摩擦系数", "构造深度", "破损调查"], "equipment": ["FWD", "摩擦系数仪", "激光断面仪"]}
+    },
+    {
+        "name": "桥头跳车", "entity_type": "Disease",
+        "description": "桥头与路基连接处由于差异沉降导致的路面高差，行车时产生明显跳车现象。",
+        "severity_level": "medium", "priority": 3, "cost_range": "500-3000 元/处",
+        "properties": {"location": "桥头", "symptom": "跳车感", "cause": "差异沉降", "evaluation": "桥头跳车指数"}
     },
 ]
 

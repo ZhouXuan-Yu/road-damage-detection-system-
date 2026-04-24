@@ -270,11 +270,11 @@ export default function AIPage() {
           setError(errMsg);
         },
         onDone: (finalContent: string) => {
-          if (finalContent || pipelineSteps.length > 0) {
+          if (finalContent) {
             addMessage({
               id: (Date.now() + 1).toString(),
               role: "assistant",
-              content: finalContent || "（Agent 已完成分析）",
+              content: finalContent,
             });
           } else {
             addMessage({

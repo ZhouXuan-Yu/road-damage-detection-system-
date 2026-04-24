@@ -15,7 +15,8 @@ import {
 } from "@/components/ui/dialog";
 import {
   Search, Plus, Trash2, RefreshCw, Upload, FileText, Layers,
-  ChevronRight, Info, BarChart2, BookOpen, Sparkles
+  ChevronRight, Info, BarChart2, BookOpen, Sparkles, Network,
+  Database, GitBranch, FileUp
 } from "lucide-react";
 import type {
   GraphNodeResponse, GraphLinkResponse, EntityDetail,
@@ -24,9 +25,9 @@ import type {
 } from "@/lib/api-types";
 
 const ENTITY_COLORS: Record<string, string> = {
-  Disease: "#3b82f6", Cause: "#ef4444", Repair: "#10b981",
-  Material: "#f59e0b", Standard: "#8b5cf6", Component: "#06b6d4",
-  Risk: "#ec4899", Region: "#84cc16", Obstacle: "#f97316",
+  Disease: "#3b82f6", Cause: "#dc2626", Repair: "#16a34a",
+  Material: "#d97706", Standard: "#7c3aed", Component: "#0891b2",
+  Risk: "#db2777", Region: "#65a30d", Obstacle: "#ea580c",
 };
 
 const ENTITY_LABELS: Record<string, string> = {
@@ -62,6 +63,7 @@ export default function KnowledgePage() {
   const [entitySearch, setEntitySearch] = useState("");
 
   const [showUpload, setShowUpload] = useState(false);
+  const [showDetailPanel, setShowDetailPanel] = useState(true);
   const [uploadTitle, setUploadTitle] = useState("");
   const [uploadContent, setUploadContent] = useState("");
   const [uploadCategory, setUploadCategory] = useState("general");
@@ -73,7 +75,6 @@ export default function KnowledgePage() {
   const graphContainerRef = useRef<HTMLDivElement>(null);
   const [graphSize, setGraphSize] = useState({ width: 800, height: 600 });
 
-  // 加载图谱
   const loadGraph = useCallback(async () => {
     try {
       const data = await api.kg2.graph({ depth: 2 });
@@ -87,7 +88,6 @@ export default function KnowledgePage() {
     }
   }, []);
 
-  // 初始化图谱
   const handleInit = async () => {
     setInitLoading(true);
     try {
@@ -101,7 +101,6 @@ export default function KnowledgePage() {
     }
   };
 
-  // 加载统计
   const loadStats = async () => {
     try {
       const data = await api.kg2.statistics();
@@ -109,7 +108,6 @@ export default function KnowledgePage() {
     } catch {}
   };
 
-  // 加载类型
   const loadTypes = async () => {
     try {
       const data = await api.kg2.types();
@@ -117,7 +115,6 @@ export default function KnowledgePage() {
     } catch {}
   };
 
-  // 加载实体列表
   const loadEntities = async (page = 1) => {
     try {
       const data = await api.kg2.entities({
@@ -136,7 +133,6 @@ export default function KnowledgePage() {
     loadEntities();
   }, []);
 
-  // 监听容器大小
   useEffect(() => {
     if (!graphContainerRef.current) return;
     const update = () => {
@@ -153,7 +149,6 @@ export default function KnowledgePage() {
     return () => ro.disconnect();
   }, []);
 
-  // 节点点击
   const handleNodeClick = async (node: GraphNodeResponse) => {
     setSelectedNode(node);
     setDetailLoading(true);
@@ -167,7 +162,6 @@ export default function KnowledgePage() {
     }
   };
 
-  // 搜索
   const handleSearch = async () => {
     if (!searchQuery.trim()) return;
     setSearching(true);
@@ -181,7 +175,6 @@ export default function KnowledgePage() {
     }
   };
 
-  // 上传文本文档
   const handleUploadText = async () => {
     if (!uploadTitle.trim() || !uploadContent.trim()) return;
     setUploading(true);
@@ -198,7 +191,6 @@ export default function KnowledgePage() {
     }
   };
 
-  // 删除实体
   const handleDeleteEntity = async (id: number) => {
     if (!confirm("确定要删除这个实体吗？相关关系也会被删除。")) return;
     try {
@@ -215,13 +207,11 @@ export default function KnowledgePage() {
     }
   };
 
-  // 从搜索结果点击跳转
   const handleSearchResultClick = async (result: SemanticSearchResult) => {
     const node = nodes.find((n) => n.id === result.id);
     if (node) {
       handleNodeClick(node);
     } else {
-      // 从API获取详情
       setSelectedNode({
         id: result.id,
         name: result.name,
@@ -251,68 +241,95 @@ export default function KnowledgePage() {
     <>
       <Header title="知识图谱" subtitle="道路病害领域知识库与关系网络" />
 
-      <div className="flex-1 overflow-auto p-6 space-y-6">
-        {/* 顶部统计卡片 */}
+      <div className="flex-1 overflow-hidden flex flex-col">
+        {/* 顶部统计 */}
         {stats && stats.total_entities > 0 && (
-          <div className="grid grid-cols-6 gap-4">
-            <StatCard label="总实体" value={stats.total_entities} color="blue" />
-            <StatCard label="总关系" value={stats.total_relations} color="purple" />
-            <StatCard label="病害类型" value={stats.type_distribution?.Disease || 0} color="blue" />
-            <StatCard label="成因类型" value={stats.type_distribution?.Cause || 0} color="red" />
-            <StatCard label="维修方法" value={stats.type_distribution?.Repair || 0} color="green" />
-            <StatCard label="材料标准" value={(stats.type_distribution?.Material || 0) + (stats.type_distribution?.Standard || 0)} color="amber" />
+          <div className="px-6 pt-4 pb-0 shrink-0">
+            <div className="grid grid-cols-6 gap-3">
+              <StatCard label="总实体" value={stats.total_entities} color="blue" icon={<Database className="h-4 w-4" />} />
+              <StatCard label="总关系" value={stats.total_relations} color="purple" icon={<GitBranch className="h-4 w-4" />} />
+              <StatCard label="病害类型" value={stats.type_distribution?.Disease || 0} color="blue" icon={<Layers className="h-4 w-4" />} />
+              <StatCard label="成因类型" value={stats.type_distribution?.Cause || 0} color="red" icon={<Info className="h-4 w-4" />} />
+              <StatCard label="维修方法" value={stats.type_distribution?.Repair || 0} color="green" icon={<BarChart2 className="h-4 w-4" />} />
+              <StatCard label="材料标准" value={(stats.type_distribution?.Material || 0) + (stats.type_distribution?.Standard || 0)} color="amber" icon={<Network className="h-4 w-4" />} />
+            </div>
           </div>
         )}
 
-        <Tabs defaultValue="graph" className="flex-1 flex flex-col">
-          <div className="px-6 pb-0">
+        <Tabs defaultValue="graph" className="flex-1 flex flex-col overflow-hidden">
+          <div className="px-6 pt-3 pb-0 shrink-0">
             <TabsList>
-              <TabsTrigger value="graph"><Layers className="h-4 w-4 mr-1" />图谱视图</TabsTrigger>
+              <TabsTrigger value="graph"><Network className="h-4 w-4 mr-1" />图谱视图</TabsTrigger>
               <TabsTrigger value="search"><Search className="h-4 w-4 mr-1" />智能搜索</TabsTrigger>
               <TabsTrigger value="entities"><BookOpen className="h-4 w-4 mr-1" />实体管理</TabsTrigger>
-              <TabsTrigger value="docs"><FileText className="h-4 w-4 mr-1" />知识文档</TabsTrigger>
+              <TabsTrigger value="docs"><FileUp className="h-4 w-4 mr-1" />知识文档</TabsTrigger>
             </TabsList>
           </div>
 
           {/* 图谱视图 */}
-          <TabsContent value="graph" className="flex-1 overflow-hidden">
-            <div className="h-full flex gap-6">
-              {/* 图谱区域 */}
-              <Card className="flex-1 overflow-hidden">
-                <CardHeader className="pb-2">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="flex items-center gap-2">
-                      <Layers className="h-5 w-5 text-blue-500" />
-                      病害关系知识图谱
-                    </CardTitle>
-                    <div className="flex gap-3 items-center">
-                      {/* 图例 */}
-                      <div className="flex gap-3 text-xs">
-                        {entityTypes.slice(0, 6).map((t) => (
-                          <div key={t.type} className="flex items-center gap-1">
-                            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: t.color }} />
-                            <span className="text-gray-500">{t.label}</span>
-                          </div>
-                        ))}
-                      </div>
-                      <Button size="sm" variant="outline" onClick={handleInit} disabled={initLoading}>
-                        <RefreshCw className={`h-4 w-4 mr-1 ${initLoading ? "animate-spin" : ""}`} />
-                        {initLoading ? "初始化中..." : "初始化数据"}
-                      </Button>
-                      <Button size="sm" variant="outline" onClick={loadGraph}>
-                        <RefreshCw className="h-4 w-4 mr-1" />刷新
-                      </Button>
+          <TabsContent value="graph" className="flex-1 overflow-hidden px-6 pb-6">
+            <div className="h-full flex gap-4">
+              {/* 图谱主体 */}
+              <div className="flex-1 flex flex-col bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                {/* 工具栏 */}
+                <div className="px-5 py-3.5 border-b border-gray-100 flex items-center justify-between shrink-0 bg-gradient-to-r from-slate-50 to-white">
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-blue-600 shadow-sm">
+                      <Network className="h-5 w-5 text-white" />
+                    </div>
+                    <div>
+                      <h2 className="text-sm font-bold text-gray-800 tracking-wide">病害关系知识图谱</h2>
+                      <p className="text-xs text-gray-400 mt-0.5">
+                        {nodes.length > 0
+                          ? `已加载 ${nodes.length} 个节点 · ${links.length} 条关系 · 可拖拽缩放`
+                          : "道路病害领域实体关系可视化"}
+                      </p>
                     </div>
                   </div>
-                </CardHeader>
-                <CardContent className="p-0 h-[calc(100%-60px)]" ref={graphContainerRef}>
+                  <div className="flex items-center gap-4">
+                    {/* 图例 */}
+                    <div className="flex items-center gap-4 text-xs">
+                      {entityTypes.slice(0, 5).map((t) => (
+                        <div key={t.type} className="flex items-center gap-1.5">
+                          <div
+                            className="w-2.5 h-2.5 rounded-full shadow-sm"
+                            style={{ backgroundColor: t.color, boxShadow: `0 0 4px ${t.color}60` }}
+                          />
+                          <span className="text-gray-500 font-medium">{t.label}</span>
+                        </div>
+                      ))}
+                      {entityTypes.length > 5 && (
+                        <span className="text-gray-400">+{entityTypes.length - 5} 类</span>
+                      )}
+                    </div>
+                    <div className="w-px h-5 bg-gray-200" />
+                    <Button size="sm" variant="outline" className="h-8 text-xs gap-1.5 border-gray-200" onClick={() => setShowDetailPanel(!showDetailPanel)}>
+                      <Info className="h-3.5 w-3.5" />
+                      {showDetailPanel ? "隐藏详情" : "显示详情"}
+                    </Button>
+                    <Button size="sm" variant="outline" className="h-8 text-xs gap-1.5 border-blue-200 text-blue-600 hover:bg-blue-50 hover:border-blue-300" onClick={handleInit} disabled={initLoading}>
+                      <Sparkles className={`h-3.5 w-3.5 ${initLoading ? "animate-spin" : ""}`} />
+                      {initLoading ? "初始化..." : "初始化数据"}
+                    </Button>
+                    <Button size="sm" variant="outline" className="h-8 text-xs gap-1.5" onClick={loadGraph}>
+                      <RefreshCw className="h-3.5 w-3.5" />刷新
+                    </Button>
+                  </div>
+                </div>
+
+                {/* 图谱区域 */}
+                <div className="flex-1 overflow-hidden" ref={graphContainerRef}>
                   {nodes.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center h-full text-gray-400">
-                      <Layers className="h-16 w-16 mb-4 opacity-30" />
-                      <p className="text-lg font-medium mb-2">暂无图谱数据</p>
-                      <p className="text-sm mb-4">点击上方"初始化数据"按钮加载预置知识图谱</p>
-                      <Button onClick={handleInit} disabled={initLoading}>
-                        <Sparkles className="h-4 w-4 mr-2" />
+                    <div className="flex flex-col items-center justify-center h-full bg-slate-50">
+                      <div className="w-24 h-24 rounded-2xl bg-blue-50 flex items-center justify-center mb-6 shadow-inner">
+                        <Network className="h-12 w-12 text-blue-300" />
+                      </div>
+                      <p className="text-lg font-semibold text-gray-700 mb-2">知识图谱为空</p>
+                      <p className="text-sm text-gray-400 mb-6 max-w-xs text-center">
+                        点击下方按钮初始化道路病害领域预置知识图谱，即可查看病害、成因、维修方法等实体关系网络
+                      </p>
+                      <Button onClick={handleInit} disabled={initLoading} className="gap-2 bg-blue-600 hover:bg-blue-700 shadow-sm">
+                        <Sparkles className="h-4 w-4" />
                         {initLoading ? "初始化中..." : "初始化知识图谱"}
                       </Button>
                     </div>
@@ -326,45 +343,88 @@ export default function KnowledgePage() {
                       height={graphSize.height}
                     />
                   )}
-                </CardContent>
-              </Card>
+                </div>
 
-              {/* 详情面板 */}
-              <Card className="w-96 shrink-0 overflow-auto">
-                <CardHeader className="pb-2">
-                  <CardTitle className="flex items-center gap-2">
-                    <Info className="h-4 w-4 text-blue-500" />
-                    {selectedNode ? "节点详情" : "节点详情"}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {detailLoading ? (
-                    <Loading message="加载详情..." />
-                  ) : selectedNode ? (
-                    <NodeDetailPanel
-                      node={selectedNode}
-                      detail={detail}
-                      onRelatedClick={(id) => {
-                        const n = nodes.find((x) => x.id === id);
-                        if (n) handleNodeClick(n);
-                      }}
-                      onDelete={handleDeleteEntity}
-                    />
-                  ) : (
-                    <div className="text-center text-gray-400 py-8">
-                      <Layers className="h-12 w-12 mx-auto mb-3 opacity-30" />
-                      <p className="text-sm">点击图谱中的节点查看详情</p>
-                      <p className="text-xs mt-1">支持拖拽、缩放、点击交互</p>
+                {/* 底部状态栏 */}
+                {nodes.length > 0 && (
+                  <div className="px-5 py-2 border-t border-gray-100 flex items-center justify-between text-xs text-gray-400 shrink-0 bg-gray-50/50">
+                    <div className="flex items-center gap-4">
+                      <span>节点: <span className="text-gray-600 font-medium">{nodes.length}</span></span>
+                      <span>关系: <span className="text-gray-600 font-medium">{links.length}</span></span>
+                      <span>类型: <span className="text-gray-600 font-medium">{entityTypes.length} 种</span></span>
                     </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
+                    <div className="flex items-center gap-1">
+                      <div className="w-1.5 h-1.5 rounded-full bg-green-400" />
+                      <span>实时监测 · 支持拖拽 · 双指缩放</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* 右侧详情面板 */}
+              {showDetailPanel && (
+                <div className="w-96 shrink-0 flex flex-col gap-4">
+                  {/* 节点详情 */}
+                  <div className="bg-white rounded-xl border border-gray-200 shadow-sm flex-1 flex flex-col overflow-hidden">
+                    <div className="px-4 py-3 border-b border-gray-100 shrink-0">
+                      <div className="flex items-center gap-2">
+                        <div className="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center shadow-sm">
+                          <Info className="h-4 w-4 text-white" />
+                        </div>
+                        <h3 className="text-sm font-bold text-gray-800">节点详情</h3>
+                      </div>
+                    </div>
+                    <div className="flex-1 overflow-auto p-4">
+                      {detailLoading ? (
+                        <Loading message="加载详情..." />
+                      ) : selectedNode ? (
+                        <NodeDetailPanel
+                          node={selectedNode}
+                          detail={detail}
+                          onRelatedClick={(id) => {
+                            const n = nodes.find((x) => x.id === id);
+                            if (n) handleNodeClick(n);
+                          }}
+                          onDelete={handleDeleteEntity}
+                        />
+                      ) : (
+                        <div className="flex flex-col items-center justify-center h-full text-gray-400 py-12">
+                          <div className="w-16 h-16 rounded-xl bg-slate-100 flex items-center justify-center mb-4">
+                            <Layers className="h-8 w-8 text-slate-300" />
+                          </div>
+                          <p className="text-sm font-medium text-gray-500">点击图谱节点查看详情</p>
+                          <p className="text-xs text-gray-400 mt-1">支持拖拽、缩放、点击交互</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* 关系类型说明 */}
+                  <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
+                    <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">关系类型说明</h4>
+                    <div className="space-y-2">
+                      {Object.entries(RELATION_LABELS).slice(0, 6).map(([key, label]) => (
+                        <div key={key} className="flex items-center gap-2">
+                          <div
+                            className="w-2 h-2 rounded-full shrink-0"
+                            style={{ backgroundColor: {
+                              CAUSED_BY: "#dc2626", LEADS_TO: "#ea580c", TREATED_BY: "#16a34a",
+                              USES_MATERIAL: "#d97706", AFFECTS_COMPONENT: "#0891b2", RELATED_TO: "#94a3b8",
+                              OCCURS_IN: "#65a30d", CO_OCCURS: "#db2777", APPLIES_STANDARD: "#7c3aed",
+                            }[key] || "#94a3b8" }}
+                          />
+                          <span className="text-xs text-gray-600">{label}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </TabsContent>
 
           {/* 智能搜索 */}
           <TabsContent value="search" className="flex-1 overflow-auto p-6">
-            <div className="max-w-3xl mx-auto space-y-6">
+            <div className="max-w-3xl mx-auto space-y-5">
               <Card>
                 <CardHeader><CardTitle>语义搜索</CardTitle></CardHeader>
                 <CardContent className="space-y-4">
@@ -382,11 +442,11 @@ export default function KnowledgePage() {
                     </Button>
                   </div>
                   <div className="flex gap-2 flex-wrap">
-                    {["纵向裂缝", "车辙 维修", "坑洞 沥青", "龟裂 基层", "井盖沉降"].map((q) => (
+                    {["纵向裂缝", "车辙 维修", "坑洞 沥青", "龟裂 基层", "井盖沉降", "沥青混凝土", "水损害"].map((q) => (
                       <button
                         key={q}
-                        onClick={() => { setSearchQuery(q); }}
-                        className="px-3 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded-full text-gray-600 transition-colors"
+                        onClick={() => setSearchQuery(q)}
+                        className="px-3 py-1 text-xs bg-gray-100 hover:bg-blue-50 hover:text-blue-600 rounded-full text-gray-600 border border-transparent hover:border-blue-200 transition-colors"
                       >
                         {q}
                       </button>
@@ -397,29 +457,31 @@ export default function KnowledgePage() {
 
               {searchResults.length > 0 && (
                 <Card>
-                  <CardHeader>
-                    <CardTitle>搜索结果 ({searchResults.length})</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
+                  <CardHeader><CardTitle>搜索结果 ({searchResults.length})</CardTitle></CardHeader>
+                  <CardContent className="space-y-2">
                     {searchResults.map((r) => (
                       <div
                         key={r.id}
                         onClick={() => handleSearchResultClick(r)}
-                        className="p-4 rounded-lg border hover:bg-blue-50 cursor-pointer transition-colors"
+                        className="p-4 rounded-lg border border-gray-100 hover:border-blue-200 hover:bg-blue-50/40 cursor-pointer transition-all"
                       >
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="font-medium text-gray-900">{r.name}</span>
-                          <Badge style={{ backgroundColor: ENTITY_COLORS[r.entity_type] + "20", color: ENTITY_COLORS[r.entity_type] }}>
+                        <div className="flex items-center gap-2 mb-1.5">
+                          <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: ENTITY_COLORS[r.entity_type] }} />
+                          <span className="font-semibold text-gray-900 text-sm">{r.name}</span>
+                          <Badge
+                            className="text-xs"
+                            style={{ backgroundColor: ENTITY_COLORS[r.entity_type] + "15", color: ENTITY_COLORS[r.entity_type] }}
+                          >
                             {ENTITY_LABELS[r.entity_type] || r.entity_type}
                           </Badge>
-                          {r.code && <Badge variant="outline">{r.code}</Badge>}
-                          <span className="ml-auto text-xs text-gray-400">匹配度: {r.score.toFixed(0)}</span>
+                          {r.code && <Badge variant="outline" className="text-xs">{r.code}</Badge>}
+                          <span className="ml-auto text-xs text-gray-400 font-medium">匹配度: {r.score.toFixed(0)}</span>
                         </div>
                         {r.description && (
-                          <p className="text-sm text-gray-500 line-clamp-2">{r.description}</p>
+                          <p className="text-xs text-gray-500 line-clamp-2 pl-4">{r.description}</p>
                         )}
                         {r.cost_range && (
-                          <p className="text-xs text-gray-400 mt-1">预估费用: {r.cost_range}</p>
+                          <p className="text-xs text-gray-400 mt-1 pl-4">预估费用: {r.cost_range}</p>
                         )}
                       </div>
                     ))}
@@ -436,17 +498,11 @@ export default function KnowledgePage() {
                 <div className="flex items-center justify-between">
                   <CardTitle>实体列表 ({entityTotal})</CardTitle>
                   <div className="flex gap-3 items-center">
-                    <Input
-                      placeholder="搜索实体..."
-                      value={entitySearch}
-                      onChange={(e) => setEntitySearch(e.target.value)}
-                      className="w-48"
-                    />
-                    <select
-                      className="border rounded px-2 py-1 text-sm"
+                    <Input placeholder="搜索实体..." value={entitySearch}
+                      onChange={(e) => setEntitySearch(e.target.value)} className="w-48" />
+                    <select className="border rounded px-2 py-1.5 text-sm"
                       value={entityTypeFilter}
-                      onChange={(e) => { setEntityTypeFilter(e.target.value); setEntityPage(1); }}
-                    >
+                      onChange={(e) => { setEntityTypeFilter(e.target.value); setEntityPage(1); }}>
                       <option value="">全部类型</option>
                       {entityTypes.map((t) => (
                         <option key={t.type} value={t.type}>{t.label}</option>
@@ -457,11 +513,10 @@ export default function KnowledgePage() {
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="space-y-2">
+                <div className="space-y-1">
                   {entityList.map((e) => (
-                    <div
-                      key={e.id}
-                      className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer group"
+                    <div key={e.id}
+                      className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-50 cursor-pointer group border border-transparent hover:border-gray-100 transition-all"
                       onClick={() => handleNodeClick({
                         id: e.id, name: e.name, entity_type: e.entity_type,
                         code: e.code, description: e.description,
@@ -470,21 +525,25 @@ export default function KnowledgePage() {
                         color: ENTITY_COLORS[e.entity_type],
                       })}
                     >
-                      <div className="w-3 h-3 rounded-full shrink-0"
-                        style={{ backgroundColor: ENTITY_COLORS[e.entity_type] }} />
+                      <div className="w-2.5 h-2.5 rounded-full shrink-0"
+                        style={{ backgroundColor: ENTITY_COLORS[e.entity_type], boxShadow: `0 0 4px ${ENTITY_COLORS[e.entity_type]}40` }} />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className="font-medium text-sm">{e.name}</span>
+                          <span className="font-medium text-sm text-gray-800">{e.name}</span>
                           {e.code && <Badge variant="outline" className="text-xs">{e.code}</Badge>}
-                          <span className="text-xs text-gray-400">{ENTITY_LABELS[e.entity_type] || e.entity_type}</span>
+                          <Badge
+                            className="text-xs"
+                            style={{ backgroundColor: ENTITY_COLORS[e.entity_type] + "12", color: ENTITY_COLORS[e.entity_type] }}
+                          >
+                            {ENTITY_LABELS[e.entity_type] || e.entity_type}
+                          </Badge>
                         </div>
                         {e.description && (
-                          <p className="text-xs text-gray-400 truncate">{e.description}</p>
+                          <p className="text-xs text-gray-400 truncate mt-0.5">{e.description}</p>
                         )}
                       </div>
-                      <Button
-                        size="sm" variant="ghost"
-                        className="opacity-0 group-hover:opacity-100 text-red-500"
+                      <Button size="sm" variant="ghost"
+                        className="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-600 hover:bg-red-50 shrink-0"
                         onClick={(e_) => { e_.stopPropagation(); handleDeleteEntity(e.id); }}
                       >
                         <Trash2 className="h-4 w-4" />
@@ -493,11 +552,11 @@ export default function KnowledgePage() {
                   ))}
                 </div>
                 {entityTotal > 20 && (
-                  <div className="flex justify-center gap-2 mt-4">
+                  <div className="flex justify-center gap-2 mt-5">
                     <Button size="sm" variant="outline" disabled={entityPage <= 1}
                       onClick={() => loadEntities(entityPage - 1)}>上一页</Button>
                     <span className="text-sm text-gray-500 self-center">
-                      第 {entityPage} 页，共 {Math.ceil(entityTotal / 20)} 页
+                      第 {entityPage} / {Math.ceil(entityTotal / 20)} 页
                     </span>
                     <Button size="sm" variant="outline"
                       disabled={entityPage >= Math.ceil(entityTotal / 20)}
@@ -514,21 +573,33 @@ export default function KnowledgePage() {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle>知识文档管理</CardTitle>
-                  <Button onClick={() => setShowUpload(true)}>
-                    <Plus className="h-4 w-4 mr-2" />添加文档
+                  <Button onClick={() => setShowUpload(true)} className="gap-2">
+                    <FileUp className="h-4 w-4" />添加文档
                   </Button>
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="bg-blue-50 rounded-lg p-4 text-sm text-blue-700">
-                  <p className="font-medium mb-1">文档上传说明</p>
-                  <p>上传道路病害相关文章或文本，系统将自动使用 AI 抽取其中的实体和关系，构建知识图谱。</p>
-                  <p className="mt-2 text-xs">支持格式：TXT、Markdown、HTML。也可直接粘贴文本内容。</p>
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-5 border border-blue-100">
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-blue-600 flex items-center justify-center shrink-0 shadow-sm">
+                      <FileText className="h-5 w-5 text-white" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-gray-800 mb-1">AI 智能文档分析</h4>
+                      <p className="text-sm text-gray-600 leading-relaxed">
+                        上传道路病害相关文章或粘贴文本内容，系统将自动使用 <span className="text-blue-600 font-medium">DeepSeek AI</span> 抽取其中的病害实体和关系，自动构建知识图谱。
+                      </p>
+                      <p className="text-xs text-gray-400 mt-2">支持格式：TXT、Markdown、HTML，也可直接粘贴文本内容。</p>
+                    </div>
+                  </div>
                 </div>
                 {uploadResult && (
-                  <div className="mt-4 p-4 bg-green-50 rounded-lg text-sm text-green-700">
-                    <p className="font-medium">导入成功！</p>
-                    <p>抽取了 {uploadResult.entities} 个实体，{uploadResult.relations} 条关系</p>
+                  <div className="mt-4 p-4 bg-green-50 rounded-xl border border-green-100">
+                    <p className="font-semibold text-green-700 text-sm">导入成功！</p>
+                    <p className="text-xs text-green-600 mt-1">
+                      抽取了 <span className="font-bold text-green-700">{uploadResult.entities}</span> 个实体，
+                      <span className="font-bold text-green-700">{uploadResult.relations}</span> 条关系
+                    </p>
                   </div>
                 )}
               </CardContent>
@@ -537,7 +608,6 @@ export default function KnowledgePage() {
         </Tabs>
       </div>
 
-      {/* 上传文档对话框 */}
       <Dialog open={showUpload} onOpenChange={setShowUpload}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
@@ -545,29 +615,23 @@ export default function KnowledgePage() {
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div>
-              <label className="text-sm font-medium mb-1 block">文档标题</label>
-              <Input
-                placeholder="例如：高速公路沥青路面养护技术指南"
-                value={uploadTitle}
-                onChange={(e) => setUploadTitle(e.target.value)}
-              />
+              <label className="text-sm font-medium mb-1 block text-gray-700">文档标题</label>
+              <Input placeholder="例如：高速公路沥青路面养护技术指南" value={uploadTitle}
+                onChange={(e) => setUploadTitle(e.target.value)} />
             </div>
             <div>
-              <label className="text-sm font-medium mb-1 block">文档内容</label>
+              <label className="text-sm font-medium mb-1 block text-gray-700">文档内容</label>
               <textarea
-                className="w-full h-64 border rounded-lg p-3 text-sm resize-none font-mono"
+                className="w-full h-64 border border-gray-200 rounded-xl p-3 text-sm resize-none font-mono focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
                 placeholder="粘贴文章内容或技术文档..."
                 value={uploadContent}
                 onChange={(e) => setUploadContent(e.target.value)}
               />
             </div>
             <div>
-              <label className="text-sm font-medium mb-1 block">分类</label>
-              <select
-                className="w-full border rounded-lg px-3 py-2 text-sm"
-                value={uploadCategory}
-                onChange={(e) => setUploadCategory(e.target.value)}
-              >
+              <label className="text-sm font-medium mb-1 block text-gray-700">分类</label>
+              <select className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                value={uploadCategory} onChange={(e) => setUploadCategory(e.target.value)}>
                 <option value="general">通用</option>
                 <option value="maintenance">养护技术</option>
                 <option value="material">材料技术</option>
@@ -578,8 +642,9 @@ export default function KnowledgePage() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowUpload(false)}>取消</Button>
-            <Button onClick={handleUploadText} disabled={uploading || !uploadTitle.trim() || !uploadContent.trim()}>
-              {uploading ? <Loading className="h-4 w-4 mr-2" /> : <Sparkles className="h-4 w-4 mr-2" />}
+            <Button onClick={handleUploadText} disabled={uploading || !uploadTitle.trim() || !uploadContent.trim()}
+              className="gap-2">
+              {uploading ? <Loading className="h-4 w-4" /> : <Sparkles className="h-4 w-4" />}
               {uploading ? "分析中..." : "上传并抽取实体"}
             </Button>
           </DialogFooter>
@@ -590,25 +655,32 @@ export default function KnowledgePage() {
 }
 
 // 统计卡片
-function StatCard({ label, value, color }: { label: string; value: number; color: string }) {
-  const colors: Record<string, string> = {
-    blue: "bg-blue-50 text-blue-700 border-blue-100",
-    purple: "bg-purple-50 text-purple-700 border-purple-100",
-    green: "bg-green-50 text-green-700 border-green-100",
-    red: "bg-red-50 text-red-700 border-red-100",
-    amber: "bg-amber-50 text-amber-700 border-amber-100",
+function StatCard({ label, value, color, icon }: {
+  label: string; value: number; color: string; icon?: React.ReactNode;
+}) {
+  const configs: Record<string, { bg: string; border: string; text: string; icon: string }> = {
+    blue: { bg: "bg-blue-50", border: "border-blue-100", text: "text-blue-600", icon: "text-blue-500" },
+    purple: { bg: "bg-purple-50", border: "border-purple-100", text: "text-purple-600", icon: "text-purple-500" },
+    green: { bg: "bg-green-50", border: "border-green-100", text: "text-green-600", icon: "text-green-500" },
+    red: { bg: "bg-red-50", border: "border-red-100", text: "text-red-600", icon: "text-red-500" },
+    amber: { bg: "bg-amber-50", border: "border-amber-100", text: "text-amber-600", icon: "text-amber-500" },
   };
+  const c = configs[color] || configs.blue;
+
   return (
-    <div className={`rounded-xl p-4 border ${colors[color] || colors.blue}`}>
-      <div className="text-2xl font-bold">{value}</div>
-      <div className="text-xs mt-1 opacity-70">{label}</div>
+    <div className={`${c.bg} border ${c.border} rounded-xl p-3.5 flex items-center gap-3`}>
+      {icon && <div className={`${c.icon} shrink-0`}>{icon}</div>}
+      <div className="min-w-0">
+        <div className={`text-xl font-bold ${c.text} leading-tight`}>{value}</div>
+        <div className="text-xs text-gray-500 mt-0.5 whitespace-nowrap">{label}</div>
+      </div>
     </div>
   );
 }
 
 // 节点详情面板
 function NodeDetailPanel({
-  node, detail, onRelatedClick, onDelete
+  node, detail, onRelatedClick, onDelete,
 }: {
   node: GraphNodeResponse;
   detail: EntityDetail | null;
@@ -617,107 +689,109 @@ function NodeDetailPanel({
 }) {
   return (
     <div className="space-y-4">
-      {/* 节点基本信息 */}
+      {/* 基本信息 */}
       <div>
         <div className="flex items-center gap-2 mb-2">
           <span
-            className="inline-block px-2 py-0.5 rounded text-xs text-white font-medium"
+            className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold text-white shadow-sm"
             style={{ backgroundColor: ENTITY_COLORS[node.entity_type] || "#6b7280" }}
           >
             {ENTITY_LABELS[node.entity_type] || node.entity_type}
           </span>
           {node.code && (
-            <Badge variant="outline" className="text-xs">{node.code}</Badge>
+            <span className="inline-flex items-center px-2 py-0.5 rounded border border-gray-200 text-xs font-mono text-gray-500">
+              {node.code}
+            </span>
           )}
-          <Button
-            size="sm" variant="ghost"
-            className="ml-auto text-red-500 hover:text-red-700 p-1 h-auto"
+          <Button size="sm" variant="ghost"
+            className="ml-auto text-red-400 hover:text-red-600 hover:bg-red-50 p-1 h-auto"
             onClick={() => onDelete(node.id)}
           >
-            <Trash2 className="h-3 w-3" />
+            <Trash2 className="h-3.5 w-3.5" />
           </Button>
         </div>
-        <h3 className="text-lg font-semibold text-gray-900">{node.name}</h3>
+        <h3 className="text-base font-bold text-gray-900 leading-tight">{node.name}</h3>
         {node.description && (
-          <p className="text-sm text-gray-600 mt-2 leading-relaxed">{node.description}</p>
+          <p className="text-sm text-gray-500 mt-2.5 leading-relaxed">{node.description}</p>
         )}
       </div>
 
-      {/* 属性 */}
-      {node.severity_level && (
-        <div className="bg-gray-50 rounded-lg p-3">
-          <div className="text-xs text-gray-500 mb-1">风险等级</div>
-          <Badge className={
-            node.severity_level === "critical" ? "bg-red-100 text-red-700" :
-            node.severity_level === "high" ? "bg-orange-100 text-orange-700" :
-            node.severity_level === "medium" ? "bg-yellow-100 text-yellow-700" :
-            "bg-green-100 text-green-700"
-          }>
-            {node.severity_level === "critical" ? "紧急" :
-             node.severity_level === "high" ? "高" :
-             node.severity_level === "medium" ? "中等" : "低"}
-          </Badge>
-        </div>
-      )}
+      {/* 属性信息 */}
+      <div className="space-y-2">
+        {node.severity_level && (
+          <div className="flex items-center gap-2 p-2.5 rounded-lg bg-slate-50 border border-slate-100">
+            <div className="text-xs text-gray-400 shrink-0">风险等级</div>
+            <Badge className={
+              node.severity_level === "critical" ? "bg-red-100 text-red-700" :
+              node.severity_level === "high" ? "bg-orange-100 text-orange-700" :
+              node.severity_level === "medium" ? "bg-yellow-100 text-yellow-700" :
+              "bg-green-100 text-green-700"
+            }>
+              {node.severity_level === "critical" ? "紧急" :
+               node.severity_level === "high" ? "高" :
+               node.severity_level === "medium" ? "中等" : "低"}
+            </Badge>
+          </div>
+        )}
 
-      {node.cost_range && (
-        <div className="bg-gray-50 rounded-lg p-3">
-          <div className="text-xs text-gray-500 mb-1">预估费用范围</div>
-          <div className="text-sm font-medium text-gray-700">{node.cost_range}</div>
-        </div>
-      )}
+        {node.cost_range && (
+          <div className="flex items-center gap-2 p-2.5 rounded-lg bg-slate-50 border border-slate-100">
+            <div className="text-xs text-gray-400 shrink-0">预估费用</div>
+            <div className="text-sm font-semibold text-gray-700">{node.cost_range}</div>
+          </div>
+        )}
+      </div>
 
-      {/* 出边关系 */}
-      {detail && detail.outgoing_relations && detail.outgoing_relations.length > 0 && (
+      {/* 关联关系 */}
+      {detail && (detail.outgoing_relations?.length > 0 || detail.incoming_relations?.length > 0) && (
         <div>
-          <div className="text-xs font-medium text-gray-500 mb-2 uppercase tracking-wide">
+          <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
             关联关系 ({detail.outgoing_relations.length + (detail.incoming_relations?.length || 0)})
           </div>
-          <div className="space-y-2">
-            {detail.outgoing_relations.map((r) => (
-              <div
-                key={r.id}
-                onClick={() => onRelatedClick(r.target_id || (detail.related_entities?.find((e) => e.name === r.target_name)?.id || 0))}
-                className="flex items-center gap-2 p-2 rounded-lg bg-gray-50 hover:bg-gray-100 cursor-pointer transition-colors"
-              >
-                <div className="flex-1 min-w-0">
-                  <div className="text-xs text-gray-500">
-                    {RELATION_LABELS[r.relation_type] || r.relation_type}
+          <div className="space-y-1.5">
+            {detail.outgoing_relations.map((r) => {
+              const targetEntity = detail.related_entities?.find((e) => e.name === r.target_name);
+              return (
+                <div key={r.id}
+                  onClick={() => targetEntity && onRelatedClick(targetEntity.id)}
+                  className="flex items-center gap-2 p-2 rounded-lg bg-blue-50/50 border border-blue-100 hover:bg-blue-100 cursor-pointer transition-colors"
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="text-xs text-gray-400 font-medium">{RELATION_LABELS[r.relation_type] || r.relation_type}</div>
+                    <div className="text-sm text-gray-700 font-medium truncate">{r.target_name}</div>
                   </div>
-                  <div className="text-sm text-gray-700 truncate">{r.target_name}</div>
+                  <ChevronRight className="h-4 w-4 text-blue-400 shrink-0" />
                 </div>
-                <ChevronRight className="h-4 w-4 text-gray-400 shrink-0" />
-              </div>
-            ))}
-            {detail.incoming_relations?.map((r) => (
-              <div
-                key={r.id}
-                onClick={() => onRelatedClick(r.source_id || (detail.related_entities?.find((e) => e.name === r.source_name)?.id || 0))}
-                className="flex items-center gap-2 p-2 rounded-lg bg-gray-50 hover:bg-gray-100 cursor-pointer transition-colors"
-              >
-                <div className="flex-1 min-w-0 text-right">
-                  <div className="text-xs text-gray-500">
-                    ← {RELATION_LABELS[r.relation_type] || r.relation_type}
+              );
+            })}
+            {detail.incoming_relations?.map((r) => {
+              const sourceEntity = detail.related_entities?.find((e) => e.name === r.source_name);
+              return (
+                <div key={r.id}
+                  onClick={() => sourceEntity && onRelatedClick(sourceEntity.id)}
+                  className="flex items-center gap-2 p-2 rounded-lg bg-slate-50 border border-slate-100 hover:bg-slate-100 cursor-pointer transition-colors"
+                >
+                  <div className="flex-1 min-w-0 text-right">
+                    <div className="text-xs text-gray-400 font-medium">← {RELATION_LABELS[r.relation_type] || r.relation_type}</div>
+                    <div className="text-sm text-gray-700 font-medium truncate">{r.source_name}</div>
                   </div>
-                  <div className="text-sm text-gray-700 truncate">{r.source_name}</div>
+                  <ChevronRight className="h-4 w-4 text-slate-400 shrink-0" />
                 </div>
-                <ChevronRight className="h-4 w-4 text-gray-400 shrink-0" />
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
 
-      {/* 相关实体 */}
+      {/* 相关实体标签 */}
       {detail && detail.related_entities && detail.related_entities.length > 0 && (
         <div>
-          <div className="text-xs font-medium text-gray-500 mb-2 uppercase tracking-wide">相关实体</div>
-          <div className="flex flex-wrap gap-1">
+          <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">相关实体</div>
+          <div className="flex flex-wrap gap-1.5">
             {detail.related_entities.map((e) => (
-              <Badge
-                key={e.id}
-                style={{ backgroundColor: ENTITY_COLORS[e.type] + "15", color: ENTITY_COLORS[e.type] }}
-                className="cursor-pointer hover:opacity-80 text-xs"
+              <Badge key={e.id}
+                className="cursor-pointer hover:opacity-80 text-xs px-2 py-0.5"
+                style={{ backgroundColor: (ENTITY_COLORS[e.type] || "#6b7280") + "15", color: ENTITY_COLORS[e.type] || "#6b7280" }}
                 onClick={() => onRelatedClick(e.id)}
               >
                 {e.name}

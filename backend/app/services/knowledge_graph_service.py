@@ -482,7 +482,12 @@ async def extract_entities_from_text(
 """
 
     try:
-        response = await call_llm(prompt, system="你是一个专业的道路工程知识图谱构建助手，请严格按照JSON格式输出，不要包含任何其他文字。")
+        from app.services.llm_service import call_deepseek_streaming
+        messages = [
+            {"role": "system", "content": "你是一个专业的道路工程知识图谱构建助手，请严格按照JSON格式输出，不要包含任何其他文字。"},
+            {"role": "user", "content": prompt},
+        ]
+        response, _, _ = await call_deepseek_streaming(messages, model="deepseek-chat")
         content = response.strip()
         if content.startswith("```"):
             lines = content.split("\n")

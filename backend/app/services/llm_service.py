@@ -48,7 +48,7 @@ async def call_deepseek_streaming(
         "model": model,
         "messages": messages,
         "temperature": 0.3,
-        "max_tokens": 2048,
+        "max_tokens": 4096,
     }
 
     logger.info(f"[LLM] calling DeepSeek with {len(messages)} messages, tools={bool(tools)}")
@@ -125,7 +125,7 @@ async def call_deepseek_streaming_chunked(
         "model": model,
         "messages": messages,
         "temperature": 0.3,
-        "max_tokens": 2048,
+        "max_tokens": 4096,
         "stream": True,
     }
 

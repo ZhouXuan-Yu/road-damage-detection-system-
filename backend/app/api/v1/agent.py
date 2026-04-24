@@ -168,12 +168,8 @@ def _build_messages_with_tools(
 # ─── SSE Streaming endpoint ───────────────────────────────────────────────────
 
 
-@router.post("/chat/stream")
-async def chat_stream(request: ChatRequest):
-    """
-    Streaming agent endpoint with pre-execution mode.
-    Streams SSE events: step updates + token chunks + final answer + done signal.
-    """
+async def _sse_generator(request: ChatRequest):
+    """Async generator that yields SSE records as plain text strings."""
     session_id = request.session_id or "default"
     chat_sessions.setdefault(session_id, [])
 
@@ -183,61 +179,59 @@ async def chat_stream(request: ChatRequest):
         yield _make_sse({"type": "done"})
         return
 
-    # Append user message to session history
     chat_sessions[session_id].append({"role": "user", "content": user_msg})
 
-    emitter: list[str] = []
     t_start = time.time()
 
-    def _y(em: str):
-        """Yield a single SSE record."""
-        return em
-
     try:
-        # ── Step 1: Identify and pre-execute tools ───────────────────────
-        yield await _emit_step(
-            emitter, "🔍", "分析问题", "关键词识别",
-            f"正在分析您的问题: {user_msg[:50]}...",
-        )
+        yield _make_sse({
+            "type": "step",
+            "icon": "🔍",
+            "title": "分析问题",
+            "subtitle": "关键词识别",
+            "detail": f"正在分析您的问题: {user_msg[:50]}...",
+            "status": "done",
+        })
 
         tool_results = await _pre_execute_tools(user_msg)
 
         if tool_results:
             tool_names = [tr["tool"] for tr in tool_results]
-            yield await _emit_step(
-                emitter, "📊", "工具执行完成",
-                f"执行了 {len(tool_results)} 个工具",
-                f"已执行的工具：{', '.join(tool_names)}",
-                status="done",
-            )
+            yield _make_sse({
+                "type": "step",
+                "icon": "📊",
+                "title": "工具执行完成",
+                "subtitle": f"执行了 {len(tool_results)} 个工具",
+                "detail": f"已执行的工具：{', '.join(tool_names)}",
+                "status": "done",
+            })
         else:
-            yield await _emit_step(
-                emitter, "💡", "直接回答", "无需数据库查询",
-                "正在生成回答...", status="done",
-            )
-
-        # ── Step 2: Build messages and call LLM ──────────────────────────
-        yield await _emit_step(
-            emitter, "🤖", "LLM 推理中", "DeepSeek API",
-            "正在综合数据生成回答...", status="running",
-        )
+            yield _make_sse({
+                "type": "step",
+                "icon": "💡",
+                "title": "直接回答",
+                "subtitle": "无需数据库查询",
+                "detail": "正在生成回答...",
+                "status": "done",
+            })
 
         messages = _build_messages_with_tools(session_id, user_msg, tool_results)
 
         content, _, _ = await call_deepseek_streaming(messages)
 
-        # ── Step 3: Save history and stream response ─────────────────────
         chat_sessions[session_id].append({"role": "assistant", "content": content})
 
+        # Update "LLM 推理中" step to done
         llm_ms = round((time.time() - t_start) * 1000)
-        yield await _emit_step(
-            emitter, "✅", "回答完成",
-            f"回答完成 — {llm_ms}ms",
-            "已生成完整回答",
-            status="done",
-        )
+        yield _make_sse({
+            "type": "step",
+            "icon": "✅",
+            "title": "LLM 推理完成",
+            "subtitle": f"耗时 {llm_ms}ms",
+            "detail": "已生成完整回答",
+            "status": "done",
+        })
 
-        # Yield content characters one by one
         for char in content:
             yield _make_sse({"type": "content", "content": char})
 
@@ -252,6 +246,23 @@ async def chat_stream(request: ChatRequest):
         logger.exception(f"Agent error for session {session_id}: {e}")
         yield _make_sse({"type": "error", "message": f"Agent 服务异常: {str(e)}"})
         yield _make_sse({"type": "done"})
+
+
+@router.post("/chat/stream")
+async def chat_stream(request: ChatRequest):
+    """
+    Streaming agent endpoint with pre-execution mode.
+    Streams SSE events: step updates + token chunks + final answer + done signal.
+    """
+    return StreamingResponse(
+        _sse_generator(request),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
+    )
 
 
 # ─── Non-streaming fallback ────────────────────────────────────────────────────
