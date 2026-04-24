@@ -1,0 +1,77 @@
+# Dependencies
+node_modules/
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Build outputs
+dist/
+build/
+.next/
+out/
+*.egg-info/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Exclude specific folders from parent directory
+demo5_llm_tool_calling/
+ultralytics-main26/
+yolo11n_rdd2022/
+runs/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Logs
+*.log
+logs/
+
+# Uploads and results
+backend/uploads/*
+backend/results/*
+backend/reports/*
+!backend/uploads/.gitkeep
+!backend/results/.gitkeep
+!backend/reports/.gitkeep
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# Coverage
+htmlcov/
+.coverage
+coverage.xml
+
+# Docker
+.docker/
+
+# Terraform
+*.tfstate
+*.tfstate.*
+
+# Python virtual environments
+.env/
