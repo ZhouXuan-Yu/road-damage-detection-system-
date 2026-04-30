@@ -39,9 +39,10 @@
 | Excel报告 | 检测结果Excel导出（含五种数据） |
 | Word报告 | 检测结果Word导出（含五种数据+AI建议） |
 
-![首页](./screenshots/01-homepage.png)
+
 ![路面检测](./screenshots/04-detection-image.png)
 ![历史记录](./screenshots/03-history.png)
+![首页](./screenshots/01-homepage.png)
 ![数据分析看板](./screenshots/05-statistics-dashboard.png)
 ![AI助手](./screenshots/02-ai-assistant.png)
 ![病害图谱](./screenshots/06-knowledge-graph-view.png)
