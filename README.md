@@ -8,7 +8,7 @@
 ![YOLO](https://img.shields.io/badge/YOLO11n-Detection-orange.svg)
 ![License](https://img.shields.io/badge/License-MIT-yellow.svg)
 
-**基于 YOLO11n + DeepSeek + 知识图谱的道路病害智能检测与管理系统**
+
 
 [English](./README_EN.md) | 简体中文
 
