@@ -20,8 +20,9 @@
 
 ### 系统演示视频
 
-> [!VIDEO]
-> [点击查看系统演示视频](https://github.com/ZhouXuan-Yu/road-damage-detection-system-/releases)
+[![系统演示视频](https://img.shields.io/badge/点击查看-演示视频-blue?style=for-the-badge)](https://github.com/ZhouXuan-Yu/road-damage-detection-system-/releases/download/v1.0.0/20260430-0618-53.3180326.mp4)
+
+> **视频下载链接**: [20260430-0618-53.3180326.mp4](https://github.com/ZhouXuan-Yu/road-damage-detection-system-/releases/download/v1.0.0/20260430-0618-53.3180326.mp4)
 
 视频展示了系统的完整功能，包括图片/视频检测、AI智能助手、知识图谱和报告生成等核心模块。
 
