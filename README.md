@@ -20,11 +20,35 @@
 
 ### 系统演示视频
 
-[![系统演示视频](https://img.shields.io/badge/点击查看-演示视频-blue?style=for-the-badge)](https://github.com/ZhouXuan-Yu/road-damage-detection-system-/releases/download/v1.0.0/20260430-0618-53.3180326.mp4)
+[![演示视频预览](https://img.shields.io/badge/Download-点击下载演示视频-FF0000?style=for-the-badge&logo=media)](https://github.com/ZhouXuan-Yu/road-damage-detection-system-/releases/download/v1.0.0/20260430-0618-53.3180326.mp4)
 
-> **视频下载链接**: [20260430-0618-53.3180326.mp4](https://github.com/ZhouXuan-Yu/road-damage-detection-system-/releases/download/v1.0.0/20260430-0618-53.3180326.mp4)
+> **直接观看**: 视频约161MB，点击上方按钮下载后在本地播放。
 
-视频展示了系统的完整功能，包括图片/视频检测、AI智能助手、知识图谱和报告生成等核心模块。
+### 功能截图
+
+| 功能模块 | 截图说明 |
+|---------|---------|
+| 首页 | 系统主界面，展示数据看板和快捷入口 |
+| 路面检测 | 图片/视频病害检测功能界面 |
+| 历史记录 | 检测历史列表，支持筛选和查看详情 |
+| 数据分析看板 | 多维度统计图表，可视化展示检测数据 |
+| AI助手 | 基于DeepSeek的智能问答助手 |
+| 病害图谱 | 知识图谱可视化展示 |
+| 病害图谱搜索 | 智能搜索病害关联信息 |
+| 报告中心 | PDF/Word/Excel报告生成功能 |
+| Excel报告 | 检测结果Excel导出（含五种数据） |
+| Word报告 | 检测结果Word导出（含五种数据+AI建议） |
+
+![首页](./screenshots/01-homepage.png)
+![路面检测](./screenshots/04-detection-image.png)
+![历史记录](./screenshots/03-history.png)
+![数据分析看板](./screenshots/05-statistics-dashboard.png)
+![AI助手](./screenshots/02-ai-assistant.png)
+![病害图谱](./screenshots/06-knowledge-graph-view.png)
+![病害图谱搜索](./screenshots/07-knowledge-search.png)
+![报告中心](./screenshots/08-report-create.png)
+![Excel报告](./screenshots/09-detection-excel.png)
+![Word报告](./screenshots/10-detection-word.png)
 
 ---
 
